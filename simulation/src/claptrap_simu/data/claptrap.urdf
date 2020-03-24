@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<robot name="Claptrap">
+  <link name="world"/>
+  
+<!--
+  Create wheel contact by creating fictition X, Y, yaw and roll joint.
+  Then, add a constraint in the code to link wheel velocity with X/Y velocity
+-->
+  <joint name="AnchorXJoint" type="prismatic">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <axis xyz="1 0 0"/>
+    <parent link="world"/>
+    <child link="AnchorXLink"/>
+    <limit effort="1000.0" velocity="1000.0"/>
+  </joint>
+  <joint name="AnchorYJoint" type="prismatic">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0 1 0"/>
+    <parent link="AnchorXLink"/>
+    <child link="AnchorYLink"/>
+    <limit effort="1000.0" velocity="1000.0"/>
+  </joint>
+  <joint name="AnchorYawJoint" type="revolute">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0 0 1"/>
+    <parent link="AnchorYLink"/>
+    <child link="AnchorYawLink"/>
+    <limit effort="1000.0" velocity="1000.0"/>
+  </joint>
+  <joint name="AnchorRollJoint" type="revolute">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <axis xyz="1 0 0"/>
+    <parent link="AnchorYawLink"/>
+    <child link="AnchorRollLink"/>
+    <limit effort="1000.0" velocity="1000.0"/>
+  </joint>
+    <link name="AnchorXLink"/>
+    <link name="AnchorYLink"/>
+    <link name="AnchorYawLink"/>
+    <link name="AnchorRollLink"/>
+
+<!--
+	Claptrap body
+-->
+  <joint name="BodyJoint" type="revolute">
+<!--
+	Height defines wheel diameter
+-->
+    <origin xyz="0.0 0.0 0.15" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0 1 0"/>
+    <parent link="AnchorRollLink"/>
+    <child link="Body"/>
+    <limit effort="1000.0" velocity="1000.0"/>
+  </joint>
+  <link name="Body">
+    <inertial>
+      <origin xyz="0.0 0.0 0.5" rpy="0.0 0.0 0.0"/>
+      <mass value="3.0"/>
+      <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <mesh filename="package://body.dae"/>
+      </geometry>
+      <material name="">
+        <color rgba="1.0 1.0 1.0 0.3"/>
+      </material>
+    </visual>
+  </link>
+<!--
+	Wheel body
+-->
+  <joint name="WheelJoint" type="revolute">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0 1 0"/>
+    <parent link="Body"/>
+    <child link="Wheel"/>
+    <limit effort="1000.0" velocity="1000.0"/>
+  </joint>
+  <link name="Wheel">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <mass value="1.0"/>
+<!--
+      <inertia ixx="0.5" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.5"/>
+-->
+      <inertia ixx="0.1" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.1"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <mesh filename="package://wheel.dae"/>
+      </geometry>
+      <material name="">
+        <color rgba="1.0 1.0 1.0 0.3"/>
+      </material>
+    </visual>
+  </link>
+</robot>

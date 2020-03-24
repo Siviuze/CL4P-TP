@@ -1,0 +1,8 @@
+numpy
+matplotlib
+scipy
+scikit-build
+slycot
+control
+tqdm
+meshcat

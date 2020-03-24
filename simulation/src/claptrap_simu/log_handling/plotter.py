@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+    Plot data from a csv log file using matplotlib.
+    See inline help for more info.
+'''
+
+import argparse
+import os
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from fnmatch import filter
+
+from .log_loader import LogLoader
+
+def main():
+    description_str = "Plot data from a csv log file.\n" + \
+                      "Specify a list of headers, separated by a colon for plotting on the same subplot.\n" + \
+                      "Example: h1 h2:h3 generates two subplots, one with h1, one with h2 and h3.\n"
+
+    parser = argparse.ArgumentParser(description = description_str, formatter_class = argparse.RawTextHelpFormatter)
+    parser.add_argument("input", help = "Input csv log file, or keyword 'latest'.")
+    parser.add_argument("-nt", "--notime", required = False, default = False, action = "store_true",
+                        help = "If set, using index number for X axis instead of time.")
+    main_arguments, plotting_commands = parser.parse_known_args()
+
+    # Load log file.
+    # Process latest argument.
+    logname = main_arguments.input
+    if logname == 'latest':
+        logfiles = [i for i in os.listdir('.') if 'log' in i]
+        logname = sorted(logfiles)[-1]
+        print("Loading log: {}".format(logname))
+    logfile = LogLoader(logname)
+
+    if len(plotting_commands) == 0:
+        print("Available data:")
+        for h in logfile.headers:
+            print(" - {}".format(h))
+        exit(0)
+
+    # Parse plotting arguments.
+    plotted_elements = []
+    for cmd in plotting_commands:
+        # Check that the command is valid, i.e. that all elements exits. If it is the case, add it to the list.
+        headers = cmd.split(":")
+        # Expand each element according to regular expression.
+        matching_headers = []
+        for h in headers:
+            matching_headers.append(sorted(filter(logfile.headers, h)))
+        # Get minimum size for number of subplots.
+        n_subplots = min([len(l) for l in matching_headers])
+        for i in range(n_subplots):
+            plotted_elements.append([l[i] for l in matching_headers])
+
+
+    # Create figure.
+    n_plot = len(plotted_elements)
+
+    # Arrange plot in rectangular fashion: don't allow for n_cols to be more than n_rows + 2
+    n_cols = n_plot
+    n_rows = 1
+    while n_cols > n_rows + 2:
+        n_rows = n_rows + 1
+        n_cols = np.ceil(n_plot / (1.0 * n_rows))
+
+    fig, axs = plt.subplots(nrows=int(n_rows), ncols=int(n_cols), sharex = True)
+
+    if n_plot == 1:
+        axs = np.array([axs])
+    axs = axs.flatten()
+
+    plt.suptitle(logfile.log_name + "\nFile: " + logfile.filename)
+    # X axis: time or simple index, based on user input.
+    if main_arguments.notime:
+        x_values = range(len(logfile.data[logfile.headers[0]]))
+    else:
+        x_values = logfile.data['time']
+    # Plot each element.
+    for i in range(n_plot):
+        for name in plotted_elements[i]:
+            axs[i].plot(x_values, logfile.data[name], label = name)
+    # Add legend to upper left corner.
+    for ax in axs:
+        ax.legend(bbox_to_anchor=(1.0, 1.0), loc = 1)
+        ax.grid()
+    plt.subplots_adjust(bottom=0.05, top=0.92, left=0.06, right=0.98, wspace=0.1, hspace=0.05)
+    plt.show()
+
+if __name__ == "__main__":
+    main()
